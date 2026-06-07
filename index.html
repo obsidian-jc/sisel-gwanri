@@ -50,24 +50,25 @@ body{background:#0f172a;font-family:'Noto Sans KR',sans-serif;color:#fff;height:
 .type-filters{display:flex;flex-wrap:wrap;gap:5px;padding:0 10px 10px;flex-shrink:0;}
 .type-chip{padding:3px 9px;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:10px;cursor:pointer;font-family:inherit;}
 .facility-list{flex:1;overflow-y:auto;padding:0 8px 8px;}
-.facility-group{margin-bottom:4px;}
-.group-header{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;margin-bottom:0;background:#1e293b;user-select:none;}
+.facility-group{margin-bottom:5px;}
+.group-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;cursor:pointer;background:#1e293b;user-select:none;border:1px solid #334155;}
 .group-header:active{background:#334155;}
-.group-title{font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;}
-.group-count{font-size:10px;color:#64748b;background:#0f172a;padding:1px 7px;border-radius:10px;}
-.group-arrow{font-size:10px;color:#475569;transition:transform .2s;margin-left:4px;}
-.facility-items{overflow:hidden;transition:max-height .25s ease;}
+.group-title{font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.group-count{font-size:10px;color:#94a3b8;background:#0f172a;padding:2px 8px;border-radius:10px;font-weight:700;}
+.group-arrow{font-size:11px;color:#475569;transition:transform .2s;margin-left:4px;}
+.facility-items{overflow:hidden;}
 .facility-items.collapsed{display:none;}
-.facility-items{display:block;}
-.facility-item{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;}
-.facility-item:hover{background:#1e293b;}
-.facility-item.highlighted{background:#1e3a5f;border:1px solid #3b82f6;}
-.fi-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.fi-name{font-size:11px;flex:1;}
-.fi-status{font-size:9px;padding:1px 5px;border-radius:8px;}
+.facility-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;margin-bottom:2px;border:1px solid transparent;}
+.facility-item:active{background:#1e293b;}
+.facility-item.highlighted{background:#1e3a5f;border-color:#3b82f6;}
+.fi-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.fi-name{font-size:12px;font-weight:600;flex:1;line-height:1.4;}
+.fi-col{font-size:10px;color:#60a5fa;font-weight:700;background:#1e3a5f;padding:1px 5px;border-radius:5px;flex-shrink:0;}
+.fi-status{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0;}
 .fi-status.ok{background:#10b98122;color:#10b981;}
 .fi-status.warn{background:#f59e0b22;color:#f59e0b;}
 .fi-status.bad{background:#ef444422;color:#ef4444;}
+.fi-floor{font-size:9px;color:#475569;flex-shrink:0;}
 
 .stats-panel{flex:1;overflow-y:auto;padding:10px;min-width:230px;}
 .stat-section{margin-bottom:14px;}
@@ -225,10 +226,7 @@ body{background:#0f172a;font-family:'Noto Sans KR',sans-serif;color:#fff;height:
 <div class="main">
   <div class="sidebar" id="sidebar">
     <div class="sidebar-tabs">
-      <div class="stab active" id="stab0" onclick="showPanel('explore',0)">🔍 탐색</div>
-      <div class="stab" id="stab1" onclick="showPanel('check',1)">📋 점검</div>
-      <div class="stab" id="stab2" onclick="showPanel('stats',2)">📊 통계</div>
-      <div class="stab" id="stab3" onclick="showPanel('report',3)">📄 보고서</div>
+      <div class="stab active" id="stab0">🔍 탐색</div>
       <div class="stab close-btn" onclick="toggleSidebar()">◀</div>
     </div>
     <div class="panel active" id="panelExplore">
@@ -238,40 +236,7 @@ body{background:#0f172a;font-family:'Noto Sans KR',sans-serif;color:#fff;height:
       <div class="type-filters" id="typeFilters"></div>
       <div class="facility-list" id="facilityList"></div>
     </div>
-    <div class="panel" id="panelCheck">
-      <div style="padding:10px;">
-        <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:8px;">📋 현장 점검 기록</div>
-        <div class="inp-group">
-          <label>시설 선택</label>
-          <select id="chkFacility" style="width:100%;padding:6px;background:#0f172a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;font-size:12px;font-family:inherit;">
-            <option value="">-- 시설 선택 --</option>
-          </select>
-        </div>
-        <div class="inp-group">
-          <label>작업 유형</label>
-          <select id="chkType" style="width:100%;padding:6px;background:#0f172a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;font-size:12px;font-family:inherit;">
-            <option value="점검">점검</option>
-            <option value="청소">청소</option>
-            <option value="부품교체">부품교체</option>
-            <option value="수리">수리</option>
-          </select>
-        </div>
-        <div class="inp-group">
-          <label>날짜</label>
-          <input type="date" id="chkDate" style="width:100%;padding:6px;background:#0f172a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;font-size:12px;font-family:inherit;">
-        </div>
-        <div class="inp-group">
-          <label>내용</label>
-          <textarea id="chkContent" placeholder="예: 필터 청소 완료, 이상 없음" style="width:100%;padding:6px;background:#0f172a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;font-size:12px;font-family:inherit;min-height:70px;resize:none;"></textarea>
-        </div>
-        <button onclick="saveCheckRecord()" style="width:100%;padding:9px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;">✅ 기록 저장</button>
-        <div style="margin-top:12px;border-top:1px solid #1e293b;padding-top:10px;">
-          <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;">최근 점검 기록</div>
-          <div id="recentChecks"></div>
-        </div>
-      </div>
-    </div>
-    <div class="panel" id="panelReport">
+    <div class="panel" id="panelReport_REMOVED" style="display:none"><div class="panel" id="panelReport_REMOVED2">
       <div style="padding:10px;">
         <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:10px;">📄 보고서 생성</div>
         
@@ -312,9 +277,7 @@ body{background:#0f172a;font-family:'Noto Sans KR',sans-serif;color:#fff;height:
         <div id="reportPreview" style="margin-top:10px;"></div>
       </div>
     </div>
-    <div class="panel" id="panelStats">
-      <div class="stats-panel" id="statsContent"></div>
-    </div>
+    
   </div>
 
   <div class="map-area" id="mapArea">
@@ -698,15 +661,7 @@ function toggleSidebar(){
   tb.style.marginLeft=collapsed?'44px':'0';
 }
 
-function showPanel(p,idx){
-  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.stab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('panel'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active');
-  document.getElementById('stab'+idx).classList.add('active');
-  if(p==='stats')buildStats();
-  if(p==='check')initCheckPanel();
-  if(p==='report')initReportPanel();
-}
+function showPanel(p,idx){}
 function initCheckPanel(){
   // 시설 선택 목록 갱신
   const sel=document.getElementById('chkFacility');
@@ -1236,11 +1191,11 @@ function buildFacilityList(q=''){
   </div>`:'';
   
   // 접힌 그룹 상태 유지
-  const collapsedGroups=JSON.parse(sessionStorage.getItem('fg_collapsed')||'{}');
+  const collapsedGroups=JSON.parse(sessionStorage.getItem('fg_collapsed')||'null')||{};
   
   el.innerHTML=colHeader+Object.entries(groups).map(([type,items])=>{
     const c=getColor(type);
-    const collapsed=collapsedGroups[currentFloor+'_'+type]===true;
+    const collapsed=collapsedGroups[currentFloor+'_'+type]!==false;
     return`<div class="facility-group">
       <div class="group-header" onclick="toggleGroup('${currentFloor}_${type}',this)">
         <div class="group-title">
@@ -1258,11 +1213,11 @@ function buildFacilityList(q=''){
           return`<div class="facility-item${m.id===highlightId?' highlighted':''}" id="fi_${m.id}">
             <div class="fi-dot" style="background:${c}"></div>
             <div style="flex:1;cursor:pointer;min-width:0" onclick="focusMarker('${m.id}')">
-              <div class="fi-name">${m.name}${m.column!=null?` <span style="font-size:9px;color:#60a5fa;font-weight:700;">[${m.column}번]</span>`:''}</div>
-              ${q&&(m.note||'').toLowerCase().includes(q.toLowerCase())?`<div style="font-size:9px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${m.note}</div>`:''}
+              <div class="fi-name">${m.name}</div>
+              <div style="font-size:10px;color:#475569;margin-top:1px;">${FN[m.floor]||m.floor}${m.column!=null?' · '+m.column+'번 기둥':''}</div>
+              ${q&&(m.note||'').toLowerCase().includes(q.toLowerCase())?`<div style="font-size:9px;color:#64748b;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📝 ${m.note}</div>`:''}
             </div>
-            <span class="fi-floor">${FN[m.floor]||m.floor}</span>
-            <span class="fi-status ${st.cls}" onclick="openDetail('${m.id}')" style="cursor:pointer;margin-left:3px">${st.txt}</span>
+            <span class="fi-status ${st.cls}" onclick="openDetail('${m.id}')" style="cursor:pointer;">${st.txt}</span>
           </div>`;
         }).join('')}
       </div>
@@ -1473,24 +1428,25 @@ async function uploadData(data){
 }
 
 async function loadDataFromGitHub(){
-  const USER='obsidian-jc';
-  const REPO='sisel-gwanri';
-  // raw URL + 타임스탬프로 캐시 완전 무시
-  const url='https://raw.githubusercontent.com/'+USER+'/'+REPO+'/main/data.json?nc='+Date.now();
-  try{
-    const res=await fetch(url,{cache:'no-store'});
-    if(!res.ok){
-      console.log('data.json 로드 실패:',res.status);
-      return false;
+  const base='https://obsidian-jc.github.io/sisel-gwanri';
+  const urls=[
+    base+'/data.json?t='+Date.now(),
+    '/sisel-gwanri/data.json?t='+Date.now(),
+    'data.json?t='+Date.now()
+  ];
+  for(const url of urls){
+    try{
+      const res=await fetch(url,{cache:'no-store'});
+      if(!res.ok) continue;
+      const data=await res.json();
+      applyData(data);
+      console.log('✅ 로드 완료');
+      return true;
+    }catch(e){
+      console.log('실패:',e.message);
     }
-    const data=await res.json();
-    applyData(data);
-    console.log('✅ 로드 완료:',Object.values(data.markers||{}).flat().length+'개 마커');
-    return true;
-  }catch(e){
-    console.log('로드 오류:',e.message);
-    return false;
   }
+  return false;
 }
 function applyData(data){
   if(data.markers){
@@ -1530,27 +1486,23 @@ function loadFile(input){
 function save(){localStorage.setItem('fm4_markers',JSON.stringify(markers));}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-// 앱 시작 - GitHub에서 최신 데이터 로드 후 실행
+// 앱 시작
 (async function(){
-  try {
-    const ok = await loadDataFromGitHub();
-    if(ok) console.log('✅ GitHub 데이터 로드 성공');
-    else console.log('⚠️ 로컬 데이터 사용');
-  } catch(e) {
+  try{
+    const ok=await loadDataFromGitHub();
+    if(ok) toast('✅ 최신 데이터 로드됨');
+    // 실패해도 로컬 데이터로 정상 작동 - 에러 메시지 안 보임
+  }catch(e){
     console.log('데이터 로드 오류:', e);
   }
   switchFloor('B1');
 })();
 
-// 오프라인 감지
-window.addEventListener('online', ()=>{
-  toast('🌐 인터넷 연결됨');
+// 온라인 복구 시 자동 동기화
+window.addEventListener('online',()=>{
   loadDataFromGitHub().then(ok=>{
-    if(ok){renderMarkers();buildSidebar();toast('✅ 데이터 동기화 완료!');}
+    if(ok){renderMarkers();buildSidebar();toast('✅ 동기화 완료!');}
   });
-});
-window.addEventListener('offline', ()=>{
-  toast('📴 오프라인 - 로컬 데이터 사용중');
 });
 </script>
 </body>
