@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>시설 이력보기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#f4f5f7;--card:#ffffff;--line:#e2e5ea;--text:#1f2430;--muted:#8a93a3;--accent:#2563eb;}
+body{font-family:-apple-system,'맑은 고딕',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.header .t{font-size:17px;font-weight:800;}
+.header .actions{display:flex;gap:8px;}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:15px;cursor:pointer;}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--line);}
+.tab{flex:1;padding:12px;text-align:center;font-size:13.5px;font-weight:700;color:var(--muted);
+  border-bottom:3px solid transparent;cursor:pointer;}
+.tab.active{color:var(--accent);border-color:var(--accent);}
+.page{display:none;padding:14px 16px 60px;max-width:720px;margin:0 auto;}
+.page.active{display:block;}
+
+#search{width:100%;padding:11px 14px;font-size:14px;border:1.5px solid var(--line);border-radius:12px;
+  margin-bottom:10px;background:var(--card);}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.chip{font-size:11.5px;padding:5px 11px;border-radius:14px;border:1px solid var(--line);background:var(--card);
+  cursor:pointer;color:#556;}
+.chip.active{background:#1f2430;color:#fff;border-color:#1f2430;}
+.count{font-size:12px;color:var(--muted);margin-bottom:8px;}
+
+.entry{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;}
+.entry .row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.badge{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:9px;color:#fff;white-space:nowrap;}
+.wt-badge{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:9px;white-space:nowrap;border:1.3px solid;}
+.floor-tag{font-size:11px;color:var(--muted);}
+.date-tag{font-size:11px;color:var(--muted);margin-left:auto;}
+.name{font-weight:800;font-size:14px;}
+.content{font-size:13px;line-height:1.5;color:#3a3f4b;white-space:pre-wrap;}
+.empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px;}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:700;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;font-size:14px;
+  border:1.5px solid var(--line);border-radius:11px;background:var(--card);font-family:inherit;}
+.field textarea{min-height:90px;resize:vertical;}
+
+.picker-list{max-height:240px;overflow-y:auto;border:1.5px solid var(--line);border-radius:11px;margin-top:6px;}
+.picker-item{padding:10px 13px;font-size:13.5px;border-bottom:1px solid var(--line);cursor:pointer;
+  display:flex;justify-content:space-between;}
+.picker-item:last-child{border-bottom:none;}
+.picker-item:active{background:#f0f2f5;}
+.picker-item .pn{font-weight:700;}
+.picker-item .pf{color:var(--muted);font-size:12px;}
+.selected-marker{background:#eef4ff;border:1.5px solid #cddcfb;border-radius:12px;padding:12px 14px;margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;}
+.selected-marker .sm-name{font-weight:800;font-size:14.5px;}
+.selected-marker button{background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;}
+
+.btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:800;border:none;cursor:pointer;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:disabled{background:#c7ccd6;}
+
+.toast{position:fixed;top:14px;left:16px;right:16px;background:#1f2430;color:#fff;padding:12px 16px;
+  border-radius:12px;font-size:13.5px;font-weight:600;line-height:1.4;opacity:0;transform:translateY(-10px);
+  transition:all .22s;z-index:99;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="t">🏢 시설 이력보기</div>
+  <div class="actions">
+    <button class="icon-btn" id="btn-refresh">🔄</button>
+    <button class="icon-btn" id="btn-settings">⚙️</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-page="timeline">📖 타임라인</div>
+  <div class="tab" data-page="input">✏️ 빠른입력</div>
+</div>
+
+<!-- 타임라인 -->
+<div class="page active" id="page-timeline">
+  <input type="text" id="search" placeholder="🔍 시설명 또는 내용 검색...">
+  <div class="chip-row" id="floor-chips"></div>
+  <div class="chip-row" id="type-chips"></div>
+  <div class="chip-row" id="worktype-chips"></div>
+  <div class="count" id="count-label"></div>
+  <div id="entry-list"></div>
+</div>
+
+<!-- 빠른입력 -->
+<div class="page" id="page-input">
+  <div id="picker-wrap">
+    <div class="field">
+      <label>시설 선택</label>
+      <input type="text" id="marker-search" placeholder="시설명 검색 (예: 열교환실, 117동)">
+      <div class="picker-list" id="picker-list"></div>
+    </div>
+  </div>
+  <div id="selected-wrap" style="display:none;"></div>
+
+  <div class="field">
+    <label>작업유형</label>
+    <select id="in-worktype">
+      <option value="청소">청소</option>
+      <option value="부품교체">부품교체</option>
+      <option value="점검">점검</option>
+      <option value="수리">수리</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>날짜</label>
+    <input type="date" id="in-date">
+  </div>
+  <div class="field">
+    <label>내용</label>
+    <textarea id="in-content" placeholder="작업 내용을 입력하세요"></textarea>
+  </div>
+  <button class="btn btn-primary" id="btn-save" disabled>저장 (GitHub에 반영)</button>
+  <div class="hint">저장하려면 ⚙️ 설정에서 GitHub 토큰이 입력되어 있어야 해요.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 설정 -->
+<div class="page" id="page-settings">
+  <div class="field">
+    <label>GitHub 저장소 (owner/repo)</label>
+    <input type="text" id="cfg-repo" placeholder="obsidian-jc/sisel-gwanri">
+  </div>
+  <div class="field">
+    <label>데이터 파일 경로</label>
+    <input type="text" id="cfg-path" placeholder="data.json">
+  </div>
+  <div class="field">
+    <label>브랜치</label>
+    <input type="text" id="cfg-branch" placeholder="main">
+  </div>
+  <div class="field">
+    <label>GitHub 토큰 (저장할 때만 필요, 읽기는 공개저장소라 없어도 됨)</label>
+    <input type="password" id="cfg-token" placeholder="ghp_...">
+  </div>
+  <button class="btn btn-primary" id="cfg-save">설정 저장</button>
+  <div class="hint">토큰은 이 브라우저(localStorage)에만 저장되고 외부로 전송되지 않아요 (GitHub API 호출 시에만 사용).</div>
+</div>
+
+<script>
+(function(){
+  const DEFAULTS = { repo:'obsidian-jc/sisel-gwanri', path:'data.json', branch:'main', token:'' };
+  let cfg = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('ihb-cfg')||'{}'));
+
+  const WORKTYPE_COLOR = { '청소':'#0ea5e9', '부품교체':'#f59e0b', '점검':'#22c55e', '수리':'#ef4444' };
+  const BUILTIN_TYPE_META = {
+    dong:{name:'동', color:'#94a3b8'}, pool:{name:'수영장', color:'#0ea5e9'},
+    pump:{name:'펌프', color:'#f59e0b'}, entrance:{name:'입구', color:'#22c55e'},
+    geo:{name:'지열펌프', color:'#14b8a6'}, zoller:{name:'졸러펌프', color:'#a855f7'},
+  };
+
+  let rawData = null;   // { markers:{}, customTypes:{}, columns:{} }
+  let flatEntries = [];
+  let allMarkersFlat = [];
+  let selectedMarker = null;
+  let activeFloor = '__all__', activeType = '__all__', activeWorktype = '__all__';
+
+  function typeMeta(type){
+    if(rawData && rawData.customTypes && rawData.customTypes[type]) return rawData.customTypes[type];
+    if(BUILTIN_TYPE_META[type]) return BUILTIN_TYPE_META[type];
+    return { name: type, color:'#64748b' };
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+  let toastTimer;
+  function toast(msg, type='info'){
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), type==='err' ? 7000 : 2600);
+  }
+
+  // ── 탭 전환 ──
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('page-'+tab.dataset.page).classList.add('active');
+    });
+  });
+  document.getElementById('btn-settings').addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-settings').classList.add('active');
+  });
+  document.getElementById('btn-refresh').addEventListener('click', loadData);
+
+  // ── 설정 ──
+  function fillSettingsForm(){
+    document.getElementById('cfg-repo').value = cfg.repo;
+    document.getElementById('cfg-path').value = cfg.path;
+    document.getElementById('cfg-branch').value = cfg.branch;
+    document.getElementById('cfg-token').value = cfg.token;
+  }
+  document.getElementById('cfg-save').addEventListener('click', ()=>{
+    cfg = {
+      repo: document.getElementById('cfg-repo').value.trim() || DEFAULTS.repo,
+      path: document.getElementById('cfg-path').value.trim() || DEFAULTS.path,
+      branch: document.getElementById('cfg-branch').value.trim() || DEFAULTS.branch,
+      token: document.getElementById('cfg-token').value.trim(),
+    };
+    localStorage.setItem('ihb-cfg', JSON.stringify(cfg));
+    toast('설정 저장됨');
+    loadData();
+  });
+
+  // ── 데이터 로드 (보기 전용: raw 파일 사용 — 속도제한 없이 안정적으로 읽힘) ──
+  async function loadData(){
+    toast('불러오는 중...');
+    const url = `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}/${cfg.path}?t=${Date.now()}`;
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok){
+        toast('불러오기 실패 ('+res.status+'): 설정에서 저장소/경로를 확인해주세요', 'err');
+        return;
+      }
+      rawData = await res.json();
+      buildFlatData();
+      renderTimeline();
+      renderMarkerPicker();
+      toast('불러오기 완료 ✓');
+    }catch(e){
+      toast('불러오기 오류: '+e.message, 'err');
+    }
+  }
+
+  function buildFlatData(){
+    flatEntries = [];
+    allMarkersFlat = [];
+    const floors = Object.keys(rawData.markers || {});
+    for(const floor of floors){
+      for(const m of rawData.markers[floor]){
+        allMarkersFlat.push({ id:m.id, name:m.name, type:m.type, floor });
+        for(const log of (m.logs||[])){
+          flatEntries.push({
+            logId: log.id, markerId: m.id, markerName: m.name, markerType: m.type,
+            floor, workType: log.type, date: log.date, content: log.content,
+          });
+        }
+      }
+    }
+    flatEntries.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  }
+
+  // ── 타임라인 렌더 ──
+  function renderTimeline(){
+    const floors = [...new Set(flatEntries.map(e=>e.floor))].sort();
+    const types = [...new Set(flatEntries.map(e=>e.markerType))];
+    const worktypes = [...new Set(flatEntries.map(e=>e.workType))];
+
+    renderChips('floor-chips', floors, 'floor', f=>({name:f, color:'#1f2430'}));
+    renderChips('type-chips', types, 'type', t=>typeMeta(t));
+    renderChips('worktype-chips', worktypes, 'worktype', w=>({name:w, color:WORKTYPE_COLOR[w]||'#64748b'}));
+
+    applyFilters();
+  }
+
+  function renderChips(containerId, items, group, metaFn){
+    const el = document.getElementById(containerId);
+    if(items.length === 0){ el.innerHTML=''; return; }
+    const all = `<button class="chip active" data-${group}="__all__">전체</button>`;
+    const rest = items.map(it=>{
+      const meta = metaFn(it);
+      return `<button class="chip" data-${group}="${esc(it)}" style="border-color:${meta.color};color:${meta.color};">${esc(meta.name||it)}</button>`;
+    }).join('');
+    el.innerHTML = all + rest;
+    el.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        if(group==='floor') activeFloor = chip.dataset.floor;
+        if(group==='type') activeType = chip.dataset.type;
+        if(group==='worktype') activeWorktype = chip.dataset.worktype;
+        el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c===chip));
+        applyFilters();
+      });
+    });
+  }
+
+  function applyFilters(){
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const filtered = flatEntries.filter(e=>{
+      if(activeFloor!=='__all__' && e.floor!==activeFloor) return false;
+      if(activeType!=='__all__' && e.markerType!==activeType) return false;
+      if(activeWorktype!=='__all__' && e.workType!==activeWorktype) return false;
+      if(q && !(e.markerName+e.content).toLowerCase().includes(q)) return false;
+      return true;
+    });
+    document.getElementById('count-label').textContent = filtered.length + '건';
+    const list = document.getElementById('entry-list');
+    if(filtered.length===0){ list.innerHTML = '<div class="empty">표시할 이력이 없어요</div>'; return; }
+    list.innerHTML = filtered.map(e=>{
+      const tm = typeMeta(e.markerType);
+      const wc = WORKTYPE_COLOR[e.workType] || '#64748b';
+      return `<div class="entry">
+        <div class="row1">
+          <span class="badge" style="background:${tm.color}">${esc(tm.name||e.markerType)}</span>
+          <span class="wt-badge" style="border-color:${wc};color:${wc}">${esc(e.workType)}</span>
+          <span class="floor-tag">${esc(e.floor)}</span>
+          <span class="date-tag">${esc(e.date)}</span>
+        </div>
+        <div class="name">${esc(e.markerName)}</div>
+        <div class="content">${esc(e.content)}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('search').addEventListener('keyup', applyFilters);
+
+  // ── 빠른입력: 마커 검색/선택 ──
+  function renderMarkerPicker(filterText=''){
+    const list = document.getElementById('picker-list');
+    const q = filterText.trim().toLowerCase();
+    const matched = allMarkersFlat.filter(m=> !q || m.name.toLowerCase().includes(q)).slice(0, 40);
+    if(matched.length===0){ list.innerHTML = '<div class="picker-item">검색 결과 없음</div>'; return; }
+    list.innerHTML = matched.map(m=>`
+      <div class="picker-item" data-id="${esc(m.id)}" data-floor="${esc(m.floor)}">
+        <span class="pn">${esc(m.name)}</span>
+        <span class="pf">${esc(m.floor)} · ${esc(typeMeta(m.type).name||m.type)}</span>
+      </div>`).join('');
+    list.querySelectorAll('.picker-item[data-id]').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const found = allMarkersFlat.find(m=>m.id===item.dataset.id && m.floor===item.dataset.floor);
+        selectMarker(found);
+      });
+    });
+  }
+  document.getElementById('marker-search').addEventListener('keyup', (e)=> renderMarkerPicker(e.target.value));
+
+  function selectMarker(m){
+    selectedMarker = m;
+    document.getElementById('picker-wrap').style.display = 'none';
+    const wrap = document.getElementById('selected-wrap');
+    wrap.style.display = 'block';
+    wrap.innerHTML = `<div class="selected-marker">
+      <span class="sm-name">📍 ${esc(m.name)} <span style="color:#8a93a3;font-weight:400;font-size:12px;">(${esc(m.floor)})</span></span>
+      <button id="btn-change-marker">변경</button>
+    </div>`;
+    document.getElementById('btn-change-marker').addEventListener('click', ()=>{
+      selectedMarker = null;
+      wrap.style.display='none'; wrap.innerHTML='';
+      document.getElementById('picker-wrap').style.display='block';
+      updateSaveBtn();
+    });
+    updateSaveBtn();
+  }
+  function updateSaveBtn(){
+    document.getElementById('btn-save').disabled = !(selectedMarker && cfg.token);
+  }
+
+  document.getElementById('in-date').value = todayStr();
+
+  // ── 저장 (GitHub Contents API PUT) ──
+  document.getElementById('btn-save').addEventListener('click', async ()=>{
+    if(!selectedMarker) return;
+    if(!cfg.token){ toast('설정에서 GitHub 토큰을 먼저 입력해주세요', 'err'); return; }
+    const workType = document.getElementById('in-worktype').value;
+    const date = document.getElementById('in-date').value || todayStr();
+    const content = document.getElementById('in-content').value.trim();
+    if(!content){ toast('내용을 입력해주세요', 'err'); return; }
+
+    document.getElementById('btn-save').disabled = true;
+    toast('저장 중...');
+    try{
+      // 최신본을 다시 받아서 sha 최신화 (동시편집 충돌 방지)
+      const getUrl = `https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`;
+      const getRes = await fetch(getUrl, { headers:{ 'Accept':'application/vnd.github+json', 'Authorization':'Bearer '+cfg.token }});
+      if(!getRes.ok) throw new Error('최신 데이터 조회 실패 ('+getRes.status+')');
+      const getJson = await getRes.json();
+      const latestSha = getJson.sha;
+      const latestData = JSON.parse(decodeURIComponent(escape(atob(getJson.content.replace(/\n/g,'')))));
+
+      const arr = latestData.markers[selectedMarker.floor];
+      const marker = arr.find(m=>m.id===selectedMarker.id);
+      if(!marker) throw new Error('해당 시설을 최신 데이터에서 찾을 수 없습니다 (다른 곳에서 삭제됐을 수 있어요)');
+      if(!marker.logs) marker.logs = [];
+      marker.logs.push({ id:'lg'+Date.now(), type:workType, date, content });
+
+      const newContentB64 = btoa(unescape(encodeURIComponent(JSON.stringify(latestData, null, 2))));
+      const putRes = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`, {
+        method:'PUT',
+        headers:{ 'Accept':'application/vnd.github+json', 'Authorization':'Bearer '+cfg.token, 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          message: `이력 추가: ${selectedMarker.name} (${date})`,
+          content: newContentB64,
+          sha: latestSha,
+          branch: cfg.branch,
+        }),
+      });
+      if(!putRes.ok){
+        const t = await putRes.text();
+        throw new Error('저장 실패 ('+putRes.status+'): '+t.slice(0,150));
+      }
+
+      toast('저장 완료 ✓ (' + selectedMarker.name + ')');
+      document.getElementById('in-content').value = '';
+      selectedMarker = null;
+      document.getElementById('selected-wrap').style.display='none';
+      document.getElementById('picker-wrap').style.display='block';
+      document.getElementById('marker-search').value='';
+      renderMarkerPicker();
+      await loadData();
+    }catch(e){
+      toast(e.message, 'err');
+    }
+    updateSaveBtn();
+  });
+
+  fillSettingsForm();
+  loadData();
+})();
+</script>
+</body>
+</html>
